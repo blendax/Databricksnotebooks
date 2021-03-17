@@ -164,7 +164,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 fig = plt.figure(figsize=(10,10))
 ax = plt.axes(projection="3d")
-data_length = len(x_points)
+data_length = len(x_list)
 ax.bar3d(x_list, y_list, 0, np.ones(data_length)+5,\
          np.ones(data_length)+5, z_list, color='lightblue');
 # Set camera position and angle and labels
