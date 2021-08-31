@@ -7,8 +7,8 @@
 -- COMMAND ----------
 
 -- DROP DB and TABLE if the Exist to have a working demo
-DROP TABLE IF EXISTS events;
-DROP DATABASE IF EXISTS aldemo;
+DROP TABLE IF EXISTS demodb.events;
+DROP DATABASE IF EXISTS demodb;
 
 -- COMMAND ----------
 
@@ -21,7 +21,7 @@ DROP DATABASE IF EXISTS aldemo;
 -- MAGIC %python
 -- MAGIC # Also delete the directory where the files are located for the table
 -- MAGIC # WARNING it´s recursive so make sure you really use the correct path for the table_location for the delete
--- MAGIC # dbutils.fs.rm(table_location, True)
+-- MAGIC #dbutils.fs.rm(table_location, True)
 
 -- COMMAND ----------
 
@@ -44,12 +44,12 @@ DROP DATABASE IF EXISTS aldemo;
 -- COMMAND ----------
 
 -- DBTITLE 1,Create a database to be used
-create database aldemo
+create database demodb
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Read Databricks switch action dataset (many json files)
-CREATE TABLE aldemo.events
+CREATE TABLE demodb.events
 -- The format that we want to use for our stored table after we have created it
 USING delta
 -- Where in our data lake do we want to store our table
@@ -63,54 +63,54 @@ FROM json.`/databricks-datasets/structured-streaming/events/`
 
 -- COMMAND ----------
 
-SELECT * FROM events
+SELECT * FROM demodb.events
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Query the table
-SELECT count(*) FROM events
+SELECT count(*) FROM demodb.events
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Visualize data
-SELECT date, action, count(action) AS action_count FROM events GROUP BY action, date ORDER BY date, action
+SELECT date, action, count(action) AS action_count FROM demodb.events GROUP BY action, date ORDER BY date, action
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Generate historical data - original data shifted backwards 2 days
-INSERT INTO events
+INSERT INTO demodb.events
 SELECT action, from_unixtime(time-172800, 'yyyy-MM-dd') as date
 FROM json.`/databricks-datasets/structured-streaming/events/`;
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Count rows
-SELECT count(*) FROM events
+SELECT count(*) FROM demodb.events
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Visualize final data
-SELECT date, action, count(action) AS action_count FROM events GROUP BY action, date ORDER BY date, action
+SELECT date, action, count(action) AS action_count FROM demodb.events GROUP BY action, date ORDER BY date, action
 
 -- COMMAND ----------
 
-DESCRIBE EXTENDED events PARTITION (date='2016-07-25')
+DESCRIBE EXTENDED demodb.events PARTITION (date='2016-07-25')
 
 -- COMMAND ----------
 
-OPTIMIZE events
+OPTIMIZE demodb.events
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Show table history
-DESCRIBE HISTORY events
+DESCRIBE HISTORY demodb.events
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Show table details
-DESCRIBE DETAIL events
+DESCRIBE DETAIL demodb.events
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Show the table format
-DESCRIBE FORMATTED events
+DESCRIBE FORMATTED demodb.events
