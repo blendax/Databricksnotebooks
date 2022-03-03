@@ -31,7 +31,7 @@ print(get_current_notebook())
 
 # DBTITLE 1,Log to file (blob ADLS) (Note: only works on old runtimes <6.5)
 # Log to file in blob storage/ADLS 
-logTimeFile = "/dbfs/mnt/batteryraw/benchmark/timings.cvs"
+logTimeFile = "/dbfs/tmp/timings.cvs"
 def logToFile(str):
   with open(logTimeFile, "a+") as myfile:
     myfile.write(str)
@@ -47,7 +47,7 @@ def logToFile(str):
 import datetime
 from shutil import copyfile
 
-def log_to_file2(log_msg, log_file_path = "/dbfs/mnt/datalekgen2we/databricks/logs/ft_log.csv", info2 = "", info3 = ""):
+def log_to_file2(log_msg, log_file_path = "/dbfs/mnt/datalakename/folername/logs/ft_log.csv", info2 = "", info3 = ""):
   args = ''.join(f"{v.replace(',','_')}," for v in locals().values() if v is not None)
   print(args + "\n")
   local_path= "/local_disk0/tmp/log.csv"
@@ -62,7 +62,7 @@ def log_to_file2(log_msg, log_file_path = "/dbfs/mnt/datalekgen2we/databricks/lo
 # COMMAND ----------
 
 # DBTITLE 1,Log to csv file (as above)
-def log_to_file(*strings, log_file_path = "/dbfs/mnt/datalekgen2we/databricks/logs/ft_log.csv"):
+def log_to_file(*strings, log_file_path = "/dbfs/mnt/datalakename/databricks/logs/ft_log.csv"):
   str_out = str(datetime.datetime.today())
   for f in strings:
     str_out = str_out + ',' + f.replace(',', '_')
@@ -80,20 +80,26 @@ def log_to_file(*strings, log_file_path = "/dbfs/mnt/datalekgen2we/databricks/lo
 # Date older than 14 days from now
 today = time.time()
 timeDiff = (today - F.unix_timestamp('DATE_COL'))
-df7 = df6.filter(timeDiff > 14*24*3600)
+df_data_filtered = df_data.filter(timeDiff > 14*24*3600)
 
 # COMMAND ----------
 
-# DBTITLE 1,Select columns from a list and filter columns by name
+# DBTITLE 1,Filter out dates > today (future dates)
+today = time.time()
+beforeToday = (F.unix_timestamp("DATE_COL") <= lit(today))
+df_data_filtered = df_data.filter(beforeToday)
+
+# COMMAND ----------
+
+# DBTITLE 1,Select columns from a list and at the same time filter columns by name
 # Select columns from a list and filter columns by name
-#Features and targets
-selColumns = "NB_REPAIRS","SEASON","BATTERY_AGE", "RESET_COUNTER","IS_RESET","SOH", "SOH_MINIMUM","SOH_MINIMUM_IS_FIRST","SOH_MINIMUM_NBFIRST", "SOH_MINIMUM_FIRST_A", "AH60_DISCHARGE_COUNTER","DEEP_DISCHARGE_COUNTER","TARGET", "COUNTRY_OF_OPERATION", "AVG_COUNTRY_TEMPERATURE","T_CHASSIS"
-  
-#Also, get all columns starting with P1C  
-condition = lambda col: col.startswith('P1C')
-p1cs = filter(condition, df8.columns)
-uni = list(set().union(p1cs,selColumns))
-df9 = df8.select(uni)
+# Features and targets
+selColumns = "COL_FEAT_A","COL_FEAT_B","COL_FEAT_C", "COL_TARGET"
+# Also, get all columns starting with SPECIAL_KEEP  
+condition = lambda col: col.startswith('SPECIAL_KEEP')
+special_keep_cols = filter(condition, df_data.columns)
+col_union = list(set().union(special_keep_cols, selColumns))
+df_data_with_chosen_cols = df_data.select(col_union)
 
 # COMMAND ----------
 
@@ -112,7 +118,7 @@ def countNull(columnName, dataset):
 
 # COMMAND ----------
 
-# DBTITLE 1,Null stats for all columns
+# DBTITLE 1,Null stats count for all columns
 #Null stats for all cols
 dfNullStats = dfDataSet.select([count(when(col(c).isNull(), c)).alias(c) for c in dfDataSet.columns])
 
