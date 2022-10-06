@@ -1,10 +1,8 @@
-# Databricks notebook source
-# MAGIC %md
-# MAGIC Exmaple of difference between rank and dense_rank in spark
+// Databricks notebook source
+// MAGIC %md
+// MAGIC Exmaple of difference between rank and dense_rank in spark
 
-# COMMAND ----------
-
-
+// COMMAND ----------
 
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
