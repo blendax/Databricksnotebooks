@@ -6,9 +6,9 @@
 # MAGIC - Process and then move/delete if successfull. 
 # MAGIC - Keeping a list of metadata of all processed files and other ways.
 # MAGIC - React to file system events when a new file arrives and put the event on a queue that we consume
-# MAGIC 
+# MAGIC
 # MAGIC Autoloader is using the last approach mentioned above combined with streaming and checkpoints to make things more easy.<br>
-# MAGIC 
+# MAGIC
 # MAGIC **This notebook will show how you can use Autoloader and how to use the two different modes of Autoloader in Azure.**
 
 # COMMAND ----------
@@ -16,10 +16,10 @@
 # MAGIC %md
 # MAGIC ###Auto Loader
 # MAGIC Incrementally and efficiently processes new data files as they arrive in Azure Blob storage or Azure Data Lake Storage Gen2 without any additional setup. Auto Loader provides a new Structured Streaming source called *cloudFiles*. Given an input directory path on the cloud file storage, the cloudFiles source automatically processes new files as they arrive, with the option of also processing existing files in that directory.
-# MAGIC 
+# MAGIC
 # MAGIC Docs
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC https://docs.microsoft.com/en-us/azure/databricks/spark/latest/structured-streaming/auto-loader<br>
 # MAGIC https://databricks.com/blog/2020/02/24/introducing-databricks-ingest-easy-data-ingestion-into-delta-lake.html
 
@@ -29,13 +29,13 @@
 # MAGIC There are two types of file listening:
 # MAGIC * Directory listening -  (for few files every day) - simple to get started with
 # MAGIC * File notification - (For many files and directories) - using event grid and storage queues (requires extra permission setup)
-# MAGIC 
+# MAGIC
 # MAGIC Specify:
-# MAGIC 
+# MAGIC
 # MAGIC <code>.option("cloudFiles.useNotifications", "true")</code>
-# MAGIC 
+# MAGIC
 # MAGIC to use File notification listening.
-# MAGIC 
+# MAGIC
 # MAGIC You can change mode when you restart the stream. For example, you may want to switch to file notification mode when the directory listing is getting too slow due to the increase in input directory size. For both modes, Auto Loader internally keeps tracks of what files have been processed to provide exactly-once semantics, so you do not need to manage any state information yourself.
 
 # COMMAND ----------
@@ -48,16 +48,16 @@
 # MAGIC   .option(<cloudFiles-option>, <option-value>)
 # MAGIC   .schema(<schema>)
 # MAGIC   .load(<input-path>)
-# MAGIC 
+# MAGIC
 # MAGIC df.writeStream.format("delta")
 # MAGIC   .option("checkpointLocation", <checkpoint-path>)
 # MAGIC   .start(<output-path>)
-# MAGIC 
+# MAGIC
 # MAGIC # Example
 # MAGIC val df = spark.readStream.format("cloudFiles")
 # MAGIC      .option("cloudFiles.format", "json")
 # MAGIC          .load("/input/path")
-# MAGIC 
+# MAGIC
 # MAGIC df.writeStream.trigger(Trigger.Once)
 # MAGIC          .format(“delta”)
 # MAGIC          .start(“/output/path”)
@@ -155,13 +155,13 @@ spark.read.format("delta").load(pathToOutputAppend).count()
 # MAGIC #### Change to File notification
 # MAGIC When you need to scale up you can change to File Notification mode instead.<br>
 # MAGIC Databricks will make the change easy and remember what files we already have read when using the Directory listening.<br>
-# MAGIC 
+# MAGIC
 # MAGIC We now change from directory listening to File Notification mode.
 # MAGIC This mode will use Event Grid to subscribe to event in the folder we chose. A Storage queue will be used to store the events.
 # MAGIC This solution is more scalable, but requires some extra setup in Azure.
-# MAGIC 
+# MAGIC
 # MAGIC You must provide the following authentication options only if you choose file notification mode (cloudFiles.useNotifications = true):
-# MAGIC 
+# MAGIC
 # MAGIC |Authentication Option|Type|Default|Description|
 # MAGIC |---------------------|----|-------|-----------|
 # MAGIC |cloudFiles.connectionString|String|None|The connection string for the storage account, based on either account access key or shared access signature (SAS)|
@@ -229,12 +229,13 @@ df.writeStream\
 # MAGIC You can look at the back end of this in the portal:<br>
 # MAGIC https://ms.portal.azure.com/#blade/HubsExtension/BrowseResource/resourceType/Microsoft.EventGrid%2FsystemTopics<br>
 # MAGIC too see that an "Event Grid System Topic" is created that will route the event to a StorageQueue. The names of the "Event Grid System Topic" and the StorageQueue are prefixed with databricks- so you can find them.
-# MAGIC 
+# MAGIC
 # MAGIC **Event grid system topic**<br>
-# MAGIC ![Event Grid System Topic](https://datamh.blob.core.windows.net/public/img/EventGridSystemTopic.png)
+# MAGIC ![Event Grid System Topic](https://publicstoragemh.z16.web.core.windows.net/images/EventGridSystemTopic.png)
 # MAGIC <br>
-# MAGIC **and the details of the Event Grid System Topic:**<br>
-# MAGIC ![Event Grid System Topic Details](https://datamh.blob.core.windows.net/public/img/EventGridSystemTopicDetails.png)
+# MAGIC ---
+# MAGIC **and the details of the Event Grid System Topic:**
+# MAGIC ![Event Grid System Topic Details](https://publicstoragemh.z16.web.core.windows.net/images/EventGridSystemTopicDetails.png)
 # MAGIC <br>
 # MAGIC This topic is created by Databricks automatically using the contributors right on the Eventgrid. As it says in the docs above:<br>
 # MAGIC - You can create your on Storage Queue and create your own topic. In that case Databricks only needs to have read access to the queue.
